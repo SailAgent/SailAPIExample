@@ -254,6 +254,19 @@ Interact with your agent's chatbot and search through memories:
 - `GET /api/v1/projects/sail/pages/home/chatbots` - Get list of chatbots
 - `GET /api/v1/projects/sail/pages/home/chatbot-memories?graphId={id}&page=1&limit=10` - Get chatbot memories
 
+### 🏦 BasisOS Vaults API
+
+Query vault information and share price history for BasisOS vaults:
+
+- **Get share price history**: Retrieve historical share price data for one or more vaults
+- **Get vault info**: Get detailed information about a specific vault (protocol, costs, limits, etc.)
+
+📖 **Examples**: [BasisOS Vaults API Guide](README_VAULTS_API.md)
+
+**Endpoints:**
+- `GET /api/v1/projects/{project_id}/pages/{page_id}/share-price-history` - Get share price history for vaults
+- `GET /api/v1/projects/{project_id}/pages/{page_id}/vault-info` - Get vault information
+
 ## Language-Specific Guides
 
 Choose your preferred language for detailed examples and implementation guides:

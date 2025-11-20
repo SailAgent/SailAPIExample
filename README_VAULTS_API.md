@@ -33,11 +33,27 @@ Get historical share price data for one or more vaults.
 
 #### Query Parameters
 
-- `vaultAddresses` (string, required): Comma-separated list of vault addresses
-- `chainId` (integer, required): Chain ID (e.g., 8453 for Base, 1 for Ethereum)
-- `days` (integer, optional): Number of days of history to retrieve (default: 90)
-- `startTimestamp` (integer, optional): Start timestamp in seconds (Unix epoch)
-- `endTimestamp` (integer, optional): End timestamp in seconds (Unix epoch)
+- `vaultAddresses` (string, optional): Comma-separated list of vault addresses
+  - Type: `string`
+  - Example: `"0x1234...,0x5678..."`
+- `walletAddresses` (string, optional): Comma-separated list of wallet addresses (only passed to tool if provided)
+  - Type: `string`
+  - Example: `"0xabc...,0xdef..."`
+- `chainId` (number, optional): Chain ID (e.g., 8453 for Base, 1 for Ethereum)
+  - Type: `number`
+  - Example: `8453`
+- `days` (number, optional): Number of days of history to retrieve (default: 90)
+  - Type: `number`
+  - Example: `90`
+- `startTimestamp` (datetime, optional): Start timestamp in seconds (Unix epoch)
+  - Type: `datetime` (timestamp in seconds)
+  - Example: `1696118400`
+- `endTimestamp` (date, optional): End timestamp in seconds (Unix epoch)
+  - Type: `date` (timestamp in seconds)
+  - Example: `1698796800`
+- `RISK_FREE_RATE` (number, optional): Risk-free rate for analysis (defaults to page config if not provided)
+  - Type: `number`
+  - Example: `0.05`
 
 #### Response Format
 
@@ -75,20 +91,32 @@ const PROJECT_ID = 'sail';
 const PAGE_ID = 'home';
 const JWT_TOKEN = 'your_jwt_token_here'; // Get this from authentication endpoint
 
-// Vault addresses (comma-separated)
+// Vault addresses (comma-separated string)
 const vaultAddresses = '0x1234...,0x5678...';
-const chainId = 8453; // Base chain
-const days = 90; // Optional, defaults to 90
+const chainId = 8453; // Base chain (number)
+const days = 90; // Optional, defaults to 90 (number)
 
 // Build URL with query parameters
 const url = new URL(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/pages/${PAGE_ID}/share-price-history`);
-url.searchParams.append('vaultAddresses', vaultAddresses);
-url.searchParams.append('chainId', chainId.toString());
-url.searchParams.append('days', days.toString());
+if (vaultAddresses) {
+  url.searchParams.append('vaultAddresses', vaultAddresses);
+}
+if (chainId) {
+  url.searchParams.append('chainId', chainId.toString());
+}
+if (days) {
+  url.searchParams.append('days', days.toString());
+}
 
-// Optional: Add timestamp filters
+// Optional: Add timestamp filters (datetime/date - Unix timestamps in seconds)
 // url.searchParams.append('startTimestamp', '1696118400');
 // url.searchParams.append('endTimestamp', '1698796800');
+
+// Optional: Add wallet addresses (comma-separated string)
+// url.searchParams.append('walletAddresses', '0xabc...,0xdef...');
+
+// Optional: Add risk-free rate (number)
+// url.searchParams.append('RISK_FREE_RATE', '0.05');
 
 // Make request
 fetch(url.toString(), {
@@ -140,24 +168,32 @@ PROJECT_ID = "sail"
 PAGE_ID = "home"
 JWT_TOKEN = "your_jwt_token_here"  # Get this from authentication endpoint
 
-# Vault addresses (comma-separated)
+# Vault addresses (comma-separated string)
 vault_addresses = "0x1234...,0x5678..."
-chain_id = 8453  # Base chain
-days = 90  # Optional, defaults to 90
+chain_id = 8453  # Base chain (number)
+days = 90  # Optional, defaults to 90 (number)
 
 # Build URL
 url = f"{BASE_URL}/api/v1/projects/{PROJECT_ID}/pages/{PAGE_ID}/share-price-history"
 
 # Query parameters
-params = {
-    "vaultAddresses": vault_addresses,
-    "chainId": chain_id,
-    "days": days
-}
+params = {}
+if vault_addresses:
+    params["vaultAddresses"] = vault_addresses
+if chain_id:
+    params["chainId"] = chain_id
+if days:
+    params["days"] = days
 
-# Optional: Add timestamp filters
+# Optional: Add timestamp filters (datetime/date - Unix timestamps in seconds)
 # params["startTimestamp"] = 1696118400
 # params["endTimestamp"] = 1698796800
+
+# Optional: Add wallet addresses (comma-separated string)
+# params["walletAddresses"] = "0xabc...,0xdef..."
+
+# Optional: Add risk-free rate (number)
+# params["RISK_FREE_RATE"] = 0.05
 
 # Request headers
 headers = {
@@ -210,8 +246,17 @@ Get detailed information about a specific vault.
 
 #### Query Parameters
 
-- `vaultAddress` (string, required): The vault address
-- `chainId` (integer, required): Chain ID (e.g., 8453 for Base, 1 for Ethereum)
+- `walletAddress` (string, optional): Wallet address (only passed to tool if provided)
+  - Type: `string`
+  - Example: `"0xabc..."`
+- `startTime` (datetime, optional): Start timestamp in seconds (Unix epoch)
+  - Type: `datetime` (timestamp in seconds)
+  - Example: `1696118400`
+- `endTime` (datetime, optional): End timestamp in seconds (Unix epoch)
+  - Type: `datetime` (timestamp in seconds)
+  - Example: `1698796800`
+
+**Note:** `vaultAddress` and `chainId` are no longer query parameters. These should be configured in the tool/graph that handles the vault info endpoint.
 
 #### Response Format
 
@@ -249,14 +294,15 @@ const PROJECT_ID = 'sail';
 const PAGE_ID = 'home';
 const JWT_TOKEN = 'your_jwt_token_here'; // Get this from authentication endpoint
 
-// Vault details
-const vaultAddress = '0x1234...';
-const chainId = 8453; // Base chain
-
 // Build URL with query parameters
 const url = new URL(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/pages/${PAGE_ID}/vault-info`);
-url.searchParams.append('vaultAddress', vaultAddress);
-url.searchParams.append('chainId', chainId.toString());
+
+// Optional: Add wallet address (string)
+// url.searchParams.append('walletAddress', '0xabc...');
+
+// Optional: Add time filters (datetime - Unix timestamps in seconds)
+// url.searchParams.append('startTime', '1696118400');
+// url.searchParams.append('endTime', '1698796800');
 
 // Make request
 fetch(url.toString(), {
@@ -304,18 +350,18 @@ PROJECT_ID = "sail"
 PAGE_ID = "home"
 JWT_TOKEN = "your_jwt_token_here"  # Get this from authentication endpoint
 
-# Vault details
-vault_address = "0x1234..."
-chain_id = 8453  # Base chain
-
 # Build URL
 url = f"{BASE_URL}/api/v1/projects/{PROJECT_ID}/pages/{PAGE_ID}/vault-info"
 
 # Query parameters
-params = {
-    "vaultAddress": vault_address,
-    "chainId": chain_id
-}
+params = {}
+
+# Optional: Add wallet address (string)
+# params["walletAddress"] = "0xabc..."
+
+# Optional: Add time filters (datetime - Unix timestamps in seconds)
+# params["startTime"] = 1696118400
+# params["endTime"] = 1698796800
 
 # Request headers
 headers = {
@@ -395,10 +441,17 @@ async function getSharePriceHistory(token, vaultAddresses, chainId, days = 90) {
 }
 
 // Step 3: Get vault info
-async function getVaultInfo(token, vaultAddress, chainId) {
+async function getVaultInfo(token, walletAddress, startTime, endTime) {
   const url = new URL(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/pages/${PAGE_ID}/vault-info`);
-  url.searchParams.append('vaultAddress', vaultAddress);
-  url.searchParams.append('chainId', chainId.toString());
+  if (walletAddress) {
+    url.searchParams.append('walletAddress', walletAddress);
+  }
+  if (startTime) {
+    url.searchParams.append('startTime', startTime.toString());
+  }
+  if (endTime) {
+    url.searchParams.append('endTime', endTime.toString());
+  }
   
   const response = await fetch(url.toString(), {
     method: 'GET',
@@ -432,7 +485,7 @@ async function getVaultInfo(token, vaultAddress, chainId) {
     console.log('Price History:', priceHistory);
     
     // Get info for a single vault
-    const vaultInfo = await getVaultInfo(token, '0x1234...', 8453);
+    const vaultInfo = await getVaultInfo(token, '0xabc...', 1696118400, 1698796800);
     console.log('Vault Info:', vaultInfo);
   } catch (error) {
     console.error('Error:', error);
@@ -481,12 +534,20 @@ def get_share_price_history(
     return response.json()
 
 # Step 3: Get vault info
-def get_vault_info(token: str, vault_address: str, chain_id: int) -> Dict[str, Any]:
+def get_vault_info(
+    token: str,
+    wallet_address: str = None,
+    start_time: int = None,
+    end_time: int = None
+) -> Dict[str, Any]:
     url = f"{BASE_URL}/api/v1/projects/{PROJECT_ID}/pages/{PAGE_ID}/vault-info"
-    params = {
-        "vaultAddress": vault_address,
-        "chainId": chain_id
-    }
+    params = {}
+    if wallet_address:
+        params["walletAddress"] = wallet_address
+    if start_time:
+        params["startTime"] = start_time
+    if end_time:
+        params["endTime"] = end_time
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
@@ -512,7 +573,7 @@ if __name__ == "__main__":
         print("Price History:", price_history)
         
         # Get info for a single vault
-        vault_info = get_vault_info(token, "0x1234...", 8453)
+        vault_info = get_vault_info(token, "0xabc...", 1696118400, 1698796800)
         print("Vault Info:", vault_info)
     except Exception as e:
         print(f"Error: {e}")
@@ -613,20 +674,28 @@ except requests.exceptions.RequestException as e:
 
 1. **Tool/Graph Configuration**: These endpoints require that a tool or graph is configured in the page's SDK data config. If not configured, you'll receive a 400 error with a message indicating that no tool or graph is configured.
 
-2. **Wallet Address**: The wallet address is automatically extracted from the authenticated JWT token. You don't need to (and shouldn't) pass it as a parameter.
+2. **Wallet Address**: Wallet addresses are optional parameters. If provided, they will be passed to the tool/graph. If not provided, the tool/graph will receive empty values (no default wallet address is used).
 
-3. **Chain IDs**: Common chain IDs:
+3. **Vault Address and Chain ID**: For the Vault Info endpoint, `vaultAddress` and `chainId` are no longer query parameters. These should be configured in the tool/graph that handles the vault info endpoint.
+
+4. **Parameter Types**: 
+   - `string`: Text values (e.g., wallet addresses, comma-separated lists)
+   - `number`: Numeric values (e.g., chain IDs, days, risk-free rates)
+   - `datetime`: Unix timestamps in seconds (e.g., startTimestamp, startTime, endTime)
+   - `date`: Unix timestamps in seconds (e.g., endTimestamp)
+
+5. **Chain IDs**: Common chain IDs:
    - Ethereum Mainnet: 1
    - Base: 8453
    - Arbitrum: 42161
    - Optimism: 10
    - Polygon: 137
 
-4. **Price History Format**: The `price_history` field contains an array of `[timestamp, price]` tuples where:
+6. **Price History Format**: The `price_history` field contains an array of `[timestamp, price]` tuples where:
    - `timestamp` is a Unix timestamp in seconds
    - `price` is a floating-point number representing the share price
 
-5. **Basis Points**: Costs are returned in basis points (bps). To convert to percentage, divide by 100 (e.g., 10 bps = 0.10%).
+7. **Basis Points**: Costs are returned in basis points (bps). To convert to percentage, divide by 100 (e.g., 10 bps = 0.10%).
 
 ## Additional Resources
 

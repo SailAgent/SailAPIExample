@@ -151,7 +151,7 @@ print(f"Current Balance: {deposit_info['currentBalance']}")
 
 # Run pre-deposit hooks (before deposit transaction)
 pre_hooks_result = client.pre_deposit_hooks(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
 )
@@ -159,7 +159,7 @@ print(f"Pre-deposit hooks: {pre_hooks_result}")
 
 # After deposit transaction completes, run post-deposit hooks
 post_hooks_result = client.post_deposit_hooks(
-    amount="1000000000000000000",
+    amount="1",  # 1 ETH
     tx_hash="0x...",                # Transaction hash from your deposit
     token_address=None,
     chain_id=8453,
@@ -173,7 +173,7 @@ print(f"Post-deposit hooks: {post_hooks_result}")
 ```python
 # Execute deposit directly (includes pre/post hooks)
 deposit_result = client.deposit(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
 )
@@ -202,7 +202,7 @@ print(f"Current Balance: {withdraw_info['currentBalance']}")
 
 # Run pre-withdraw hooks (before withdraw transaction)
 pre_hooks_result = client.pre_withdraw_hooks(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     recipient="0x...",              # Recipient address
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
@@ -211,7 +211,7 @@ print(f"Pre-withdraw hooks: {pre_hooks_result}")
 
 # After withdraw transaction completes, run post-withdraw hooks
 post_hooks_result = client.post_withdraw_hooks(
-    amount="1000000000000000000",
+    amount="1",  # 1 ETH
     tx_hash="0x...",                # Transaction hash from your withdrawal
     recipient="0x...",              # Recipient address
     token_address=None,
@@ -226,7 +226,7 @@ print(f"Post-withdraw hooks: {post_hooks_result}")
 ```python
 # Execute withdrawal directly (includes pre/post hooks)
 withdraw_result = client.withdraw(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     recipient="0x...",              # Recipient address
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
@@ -425,6 +425,66 @@ if chatbots['chatbots']:
         print(f"Result: {memory.get('result', 'N/A')[:100]}...")  # First 100 chars
         print(f"Timestamp: {memory.get('timestamp')}")
         print("---")
+```
+
+### Vault Operations
+
+Interact with vault information and share price history:
+
+#### Get Vault Info
+
+```python
+from datetime import datetime
+
+# Get vault info with datetime strings (ISO 8601 format)
+vault_info = client.get_vault_info(
+    wallet_address="0x...",  # Optional wallet address
+    start_time="2024-01-01T00:00:00Z",  # ISO 8601 datetime string
+    end_time="2024-12-31T23:59:59Z"     # ISO 8601 datetime string
+)
+print(f"Vault Info: {vault_info}")
+
+# Or use Unix timestamps
+import time
+start_timestamp = int(time.mktime(datetime(2024, 1, 1).timetuple()))
+end_timestamp = int(time.mktime(datetime(2024, 12, 31).timetuple()))
+
+vault_info = client.get_vault_info(
+    wallet_address="0x...",
+    start_time=start_timestamp,  # Unix timestamp in seconds
+    end_time=end_timestamp        # Unix timestamp in seconds
+)
+print(f"Vault Info: {vault_info}")
+```
+
+#### Get Share Price History
+
+```python
+from datetime import datetime
+
+# Get share price history with datetime strings (ISO 8601 format)
+price_history = client.get_share_price_history(
+    vault_addresses="0x1234...,0x5678...",  # Comma-separated vault addresses
+    chain_id=8453,                           # Base chain
+    days=90,                                 # Number of days (default: 90)
+    start_timestamp="2024-01-01T00:00:00Z",  # ISO 8601 datetime string
+    end_timestamp="2024-12-31T23:59:59Z"     # ISO 8601 datetime string
+)
+print(f"Share Price History: {price_history}")
+
+# Or use Unix timestamps
+import time
+start_timestamp = int(time.mktime(datetime(2024, 1, 1).timetuple()))
+end_timestamp = int(time.mktime(datetime(2024, 12, 31).timetuple()))
+
+price_history = client.get_share_price_history(
+    vault_addresses="0x1234...,0x5678...",
+    chain_id=8453,
+    days=90,
+    start_timestamp=start_timestamp,  # Unix timestamp in seconds
+    end_timestamp=end_timestamp        # Unix timestamp in seconds
+)
+print(f"Share Price History: {price_history}")
 ```
 
 ## Error Handling

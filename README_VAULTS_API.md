@@ -45,12 +45,12 @@ Get historical share price data for one or more vaults.
 - `days` (number, optional): Number of days of history to retrieve (default: 90)
   - Type: `number`
   - Example: `90`
-- `startTimestamp` (datetime, optional): Start timestamp in seconds (Unix epoch)
-  - Type: `datetime` (timestamp in seconds)
-  - Example: `1696118400`
-- `endTimestamp` (date, optional): End timestamp in seconds (Unix epoch)
-  - Type: `date` (timestamp in seconds)
-  - Example: `1698796800`
+- `startTimestamp` (datetime, optional): Start datetime (ISO 8601 string) or Unix timestamp in seconds
+  - Type: `datetime` (ISO 8601 string) or `number` (Unix timestamp in seconds)
+  - Example: `"2024-01-01T00:00:00Z"` or `1696118400`
+- `endTimestamp` (date, optional): End datetime (ISO 8601 string) or Unix timestamp in seconds
+  - Type: `date` (ISO 8601 string) or `number` (Unix timestamp in seconds)
+  - Example: `"2024-12-31T23:59:59Z"` or `1698796800`
 - `RISK_FREE_RATE` (number, optional): Risk-free rate for analysis (defaults to page config if not provided)
   - Type: `number`
   - Example: `0.05`
@@ -106,9 +106,12 @@ if (days) {
   url.searchParams.append('days', days.toString());
 }
 
-// Optional: Add timestamp filters (datetime/date - Unix timestamps in seconds)
-// url.searchParams.append('startTimestamp', '1696118400');
-// url.searchParams.append('endTimestamp', '1698796800');
+// Optional: Add timestamp filters (datetime ISO 8601 strings or Unix timestamps in seconds)
+// url.searchParams.append('startTimestamp', '2024-01-01T00:00:00Z');  // ISO 8601 datetime string
+// url.searchParams.append('endTimestamp', '2024-12-31T23:59:59Z');    // ISO 8601 datetime string
+// Or use Unix timestamps:
+// url.searchParams.append('startTimestamp', '1696118400');  // Unix timestamp in seconds
+// url.searchParams.append('endTimestamp', '1698796800');    // Unix timestamp in seconds
 
 // Optional: Add wallet addresses (comma-separated string)
 // url.searchParams.append('walletAddresses', '0xabc...,0xdef...');
@@ -178,9 +181,12 @@ if chain_id:
 if days:
     params["days"] = days
 
-# Optional: Add timestamp filters (datetime/date - Unix timestamps in seconds)
-# params["startTimestamp"] = 1696118400
-# params["endTimestamp"] = 1698796800
+# Optional: Add timestamp filters (datetime ISO 8601 strings or Unix timestamps in seconds)
+# params["startTimestamp"] = "2024-01-01T00:00:00Z"  # ISO 8601 datetime string
+# params["endTimestamp"] = "2024-12-31T23:59:59Z"    # ISO 8601 datetime string
+# Or use Unix timestamps:
+# params["startTimestamp"] = 1696118400  # Unix timestamp in seconds
+# params["endTimestamp"] = 1698796800    # Unix timestamp in seconds
 
 # Optional: Add wallet addresses (comma-separated string)
 # params["walletAddresses"] = "0xabc...,0xdef..."
@@ -238,12 +244,12 @@ Get vault information. Returns a simple number.
 - `walletAddress` (string, optional): Wallet address (only passed to tool if provided)
   - Type: `string`
   - Example: `"0xabc..."`
-- `startTime` (datetime, optional): Start timestamp in seconds (Unix epoch)
-  - Type: `datetime` (timestamp in seconds)
-  - Example: `1696118400`
-- `endTime` (datetime, optional): End timestamp in seconds (Unix epoch)
-  - Type: `datetime` (timestamp in seconds)
-  - Example: `1698796800`
+- `startTime` (datetime, optional): Start datetime (ISO 8601 string) or Unix timestamp in seconds
+  - Type: `datetime` (ISO 8601 string) or `number` (Unix timestamp in seconds)
+  - Example: `"2024-01-01T00:00:00Z"` or `1696118400`
+- `endTime` (datetime, optional): End datetime (ISO 8601 string) or Unix timestamp in seconds
+  - Type: `datetime` (ISO 8601 string) or `number` (Unix timestamp in seconds)
+  - Example: `"2024-12-31T23:59:59Z"` or `1698796800`
 
 **Note:** `vaultAddress` and `chainId` are no longer query parameters. These should be configured in the tool/graph that handles the vault info endpoint.
 
@@ -270,9 +276,12 @@ const url = new URL(`${BASE_URL}/api/v1/projects/${PROJECT_ID}/pages/${PAGE_ID}/
 // Optional: Add wallet address (string)
 // url.searchParams.append('walletAddress', '0xabc...');
 
-// Optional: Add time filters (datetime - Unix timestamps in seconds)
-// url.searchParams.append('startTime', '1696118400');
-// url.searchParams.append('endTime', '1698796800');
+// Optional: Add time filters (datetime ISO 8601 strings or Unix timestamps in seconds)
+// url.searchParams.append('startTime', '2024-01-01T00:00:00Z');  // ISO 8601 datetime string
+// url.searchParams.append('endTime', '2024-12-31T23:59:59Z');    // ISO 8601 datetime string
+// Or use Unix timestamps:
+// url.searchParams.append('startTime', '1696118400');  // Unix timestamp in seconds
+// url.searchParams.append('endTime', '1698796800');    // Unix timestamp in seconds
 
 // Make request
 fetch(url.toString(), {
@@ -322,9 +331,12 @@ params = {}
 # Optional: Add wallet address (string)
 # params["walletAddress"] = "0xabc..."
 
-# Optional: Add time filters (datetime - Unix timestamps in seconds)
-# params["startTime"] = 1696118400
-# params["endTime"] = 1698796800
+# Optional: Add time filters (datetime ISO 8601 strings or Unix timestamps in seconds)
+# params["startTime"] = "2024-01-01T00:00:00Z"  # ISO 8601 datetime string
+# params["endTime"] = "2024-12-31T23:59:59Z"    # ISO 8601 datetime string
+# Or use Unix timestamps:
+# params["startTime"] = 1696118400  # Unix timestamp in seconds
+# params["endTime"] = 1698796800    # Unix timestamp in seconds
 
 # Request headers
 headers = {
@@ -642,8 +654,8 @@ except requests.exceptions.RequestException as e:
 4. **Parameter Types**: 
    - `string`: Text values (e.g., wallet addresses, comma-separated lists)
    - `number`: Numeric values (e.g., chain IDs, days, risk-free rates)
-   - `datetime`: Unix timestamps in seconds (e.g., startTimestamp, startTime, endTime)
-   - `date`: Unix timestamps in seconds (e.g., endTimestamp)
+   - `datetime`: ISO 8601 datetime strings (e.g., "2024-01-01T00:00:00Z") or Unix timestamps in seconds (e.g., startTimestamp, startTime, endTime)
+   - `date`: ISO 8601 datetime strings (e.g., "2024-12-31T23:59:59Z") or Unix timestamps in seconds (e.g., endTimestamp)
 
 5. **Chain IDs**: Common chain IDs:
    - Ethereum Mainnet: 1

@@ -152,7 +152,7 @@ console.log(`Current Balance: ${depositInfo.currentBalance}`);
 
 // Run pre-deposit hooks (before deposit transaction)
 const preHooksResult = await client.preDepositHooks(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
 );
@@ -160,7 +160,7 @@ console.log('Pre-deposit hooks:', preHooksResult);
 
 // After deposit transaction completes, run post-deposit hooks
 const postHooksResult = await client.postDepositHooks(
-    '1000000000000000000',  // amount
+    '1',  // amount (1 ETH)
     '0x...',                // txHash (transaction hash from your deposit)
     null,                    // tokenAddress
     8453,                    // chainId
@@ -174,7 +174,7 @@ console.log('Post-deposit hooks:', postHooksResult);
 ```javascript
 // Execute deposit directly (includes pre/post hooks)
 const depositResult = await client.deposit(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
 );
@@ -203,7 +203,7 @@ console.log(`Current Balance: ${withdrawInfo.currentBalance}`);
 
 // Run pre-withdraw hooks (before withdraw transaction)
 const preHooksResult = await client.preWithdrawHooks(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     '0x...',                // recipient address
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
@@ -212,7 +212,7 @@ console.log('Pre-withdraw hooks:', preHooksResult);
 
 // After withdraw transaction completes, run post-withdraw hooks
 const postHooksResult = await client.postWithdrawHooks(
-    '1000000000000000000',  // amount
+    '1',  // amount (1 ETH)
     '0x...',                // txHash (transaction hash from your withdrawal)
     '0x...',                // recipient address
     null,                    // tokenAddress
@@ -227,7 +227,7 @@ console.log('Post-withdraw hooks:', postHooksResult);
 ```javascript
 // Execute withdrawal directly (includes pre/post hooks)
 const withdrawResult = await client.withdraw(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     '0x...',                // recipient address
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
@@ -433,6 +433,60 @@ if (chatbots.chatbots.length > 0) {
         console.log('---');
     });
 }
+```
+
+### Vault Operations
+
+Interact with vault information and share price history:
+
+#### Get Vault Info
+
+```javascript
+// Get vault info with datetime strings (ISO 8601 format)
+const vaultInfo = await client.getVaultInfo(
+    '0x...',                    // Optional wallet address
+    '2024-01-01T00:00:00Z',     // ISO 8601 datetime string
+    '2024-12-31T23:59:59Z'      // ISO 8601 datetime string
+);
+console.log(`Vault Info: ${vaultInfo}`);
+
+// Or use Unix timestamps
+const startTimestamp = Math.floor(new Date('2024-01-01').getTime() / 1000);
+const endTimestamp = Math.floor(new Date('2024-12-31').getTime() / 1000);
+
+const vaultInfo2 = await client.getVaultInfo(
+    '0x...',
+    startTimestamp,  // Unix timestamp in seconds
+    endTimestamp     // Unix timestamp in seconds
+);
+console.log(`Vault Info: ${vaultInfo2}`);
+```
+
+#### Get Share Price History
+
+```javascript
+// Get share price history with datetime strings (ISO 8601 format)
+const priceHistory = await client.getSharePriceHistory(
+    '0x1234...,0x5678...',      // Comma-separated vault addresses
+    8453,                        // Base chain
+    90,                          // Number of days (default: 90)
+    '2024-01-01T00:00:00Z',     // ISO 8601 datetime string
+    '2024-12-31T23:59:59Z'      // ISO 8601 datetime string
+);
+console.log('Share Price History:', priceHistory);
+
+// Or use Unix timestamps
+const startTimestamp = Math.floor(new Date('2024-01-01').getTime() / 1000);
+const endTimestamp = Math.floor(new Date('2024-12-31').getTime() / 1000);
+
+const priceHistory2 = await client.getSharePriceHistory(
+    '0x1234...,0x5678...',
+    8453,
+    90,
+    startTimestamp,  // Unix timestamp in seconds
+    endTimestamp     // Unix timestamp in seconds
+);
+console.log('Share Price History:', priceHistory2);
 ```
 
 ## Error Handling

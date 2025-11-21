@@ -186,7 +186,7 @@ class SailAPIClient {
      * Deposit funds.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to deposit (in wei or token units)
+     * @param {string} amount - Amount to deposit (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
      * @returns {Promise<Object>} Deposit response
@@ -215,7 +215,7 @@ class SailAPIClient {
      * Execute pre-deposit hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to deposit
+     * @param {string} amount - Amount to deposit (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
      * @returns {Promise<Object>} Pre-deposit hooks response
@@ -234,7 +234,7 @@ class SailAPIClient {
      * Execute post-deposit hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount that was deposited
+     * @param {string} amount - Amount that was deposited (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string} txHash - Transaction hash
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
@@ -261,7 +261,7 @@ class SailAPIClient {
      * Withdraw funds.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to withdraw (in wei or token units)
+     * @param {string} amount - Amount to withdraw (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
      * @returns {Promise<Object>} Withdraw response
@@ -290,7 +290,7 @@ class SailAPIClient {
      * Execute pre-withdraw hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to withdraw (in wei or token units)
+     * @param {string} amount - Amount to withdraw (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string} recipient - Recipient address for the withdrawal
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
@@ -311,7 +311,7 @@ class SailAPIClient {
      * Execute post-withdraw hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount that was withdrawn (in wei or token units)
+     * @param {string} amount - Amount that was withdrawn (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string} txHash - Transaction hash
      * @param {string} recipient - Recipient address for the withdrawal
      * @param {string|null} tokenAddress - Optional token address
@@ -536,8 +536,8 @@ class SailAPIClient {
      * @param {string} vaultAddresses - Comma-separated list of vault addresses
      * @param {number} chainId - Chain ID
      * @param {number} days - Number of days (default: 90)
-     * @param {number|null} startTimestamp - Optional start timestamp
-     * @param {number|null} endTimestamp - Optional end timestamp
+     * @param {string|number|null} startTimestamp - Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
+     * @param {string|number|null} endTimestamp - Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
      * @returns {Promise<Object>} Share price history
      */
     async getSharePriceHistory(vaultAddresses, chainId, days = 90, startTimestamp = null, endTimestamp = null) {
@@ -558,8 +558,8 @@ class SailAPIClient {
      * Wallet address is extracted from JWT token, not from parameters.
      * 
      * @param {string|null} walletAddress - Optional wallet address (only passed to tool if provided)
-     * @param {number|null} startTime - Optional start timestamp in seconds (Unix epoch)
-     * @param {number|null} endTime - Optional end timestamp in seconds (Unix epoch)
+     * @param {string|number|null} startTime - Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
+     * @param {string|number|null} endTime - Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
      * @returns {Promise<number>} Vault information as a simple number (e.g., 10.31)
      */
     async getVaultInfo(walletAddress = null, startTime = null, endTime = null) {

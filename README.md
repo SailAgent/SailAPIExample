@@ -258,8 +258,8 @@ Interact with your agent's chatbot and search through memories:
 
 Query vault information and share price history for BasisOS vaults:
 
-- **Get share price history**: Retrieve historical share price data for one or more vaults
-- **Get vault info**: Get detailed information about a specific vault (protocol, costs, limits, etc.)
+- **Get share price history**: Retrieve performance metrics (APY, volatility, Sharpe ratio, etc.) for vaults. Returns an object with `apy_7d`, `apy_30d`, `apy_90d`, `volatility_30d`, `max_drawdown`, `sharpe_ratio`, `current_balance`, and `data_points`.
+- **Get vault info**: Get vault information. Returns a simple number (e.g., 10.31).
 
 📖 **Examples**: [BasisOS Vaults API Guide](README_VAULTS_API.md)
 

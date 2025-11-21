@@ -676,24 +676,30 @@ class SailAPIClient:
     
     def get_vault_info(
         self,
-        vault_address: str,
-        chain_id: int
-    ) -> Dict[str, Any]:
+        wallet_address: Optional[str] = None,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None
+    ) -> float:
         """
         Get vault information.
+        Vault address and chain ID are configured in the tool/graph, not passed as parameters.
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            vault_address: Vault address
-            chain_id: Chain ID
+            wallet_address: Optional wallet address (only passed to tool if provided)
+            start_time: Optional start timestamp in seconds (Unix epoch)
+            end_time: Optional end timestamp in seconds (Unix epoch)
             
         Returns:
-            Vault information
+            Vault information as a simple number (e.g., 10.31)
         """
-        params = {
-            "vaultAddress": vault_address,
-            "chainId": chain_id
-        }
+        params = {}
+        if wallet_address:
+            params["walletAddress"] = wallet_address
+        if start_time is not None:
+            params["startTime"] = start_time
+        if end_time is not None:
+            params["endTime"] = end_time
         
         return self._request("GET", "/vault-info", params=params)
     

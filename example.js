@@ -554,17 +554,25 @@ class SailAPIClient {
 
     /**
      * Get vault information.
+     * Vault address and chain ID are configured in the tool/graph, not passed as parameters.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} vaultAddress - Vault address
-     * @param {number} chainId - Chain ID
-     * @returns {Promise<Object>} Vault information
+     * @param {string|null} walletAddress - Optional wallet address (only passed to tool if provided)
+     * @param {number|null} startTime - Optional start timestamp in seconds (Unix epoch)
+     * @param {number|null} endTime - Optional end timestamp in seconds (Unix epoch)
+     * @returns {Promise<number>} Vault information as a simple number (e.g., 10.31)
      */
-    async getVaultInfo(vaultAddress, chainId) {
-        const params = {
-            vaultAddress,
-            chainId
-        };
+    async getVaultInfo(walletAddress = null, startTime = null, endTime = null) {
+        const params = {};
+        if (walletAddress) {
+            params.walletAddress = walletAddress;
+        }
+        if (startTime !== null) {
+            params.startTime = startTime;
+        }
+        if (endTime !== null) {
+            params.endTime = endTime;
+        }
 
         return this._request('GET', '/vault-info', { params });
     }

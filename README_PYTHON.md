@@ -487,6 +487,54 @@ price_history = client.get_share_price_history(
 print(f"Share Price History: {price_history}")
 ```
 
+### Custom APIs
+
+Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints.
+
+#### Get Custom API Metadata
+
+Get custom API configuration and input parameters:
+
+```python
+# Get custom API metadata
+api_id = "custom_1234567890_abc123"
+api_metadata = client.get_custom_api(api_id)
+print(f"API Name: {api_metadata['name']}")
+print(f"Description: {api_metadata['description']}")
+print(f"Input Parameters: {api_metadata.get('inputParams', [])}")
+```
+
+#### Execute Custom API
+
+Execute a custom API endpoint with parameters:
+
+```python
+# Execute custom API with parameters
+api_id = "custom_1234567890_abc123"
+params = {
+    "param1": "value1",
+    "param2": 42,
+    "param3": True
+}
+
+# Important: Parameters are automatically wrapped in a "params" object
+# The request body will be: {"params": {"param1": "value1", "param2": 42, "param3": True}}
+result = client.post_custom_api(api_id, params)
+print(f"Result: {result}")
+```
+
+**Important:** Custom API POST requests require parameters to be nested in a `params` field. The `post_custom_api` method automatically wraps your parameters in this structure. The actual request body sent to the server will be:
+
+```json
+{
+  "params": {
+    "param1": "value1",
+    "param2": 42,
+    "param3": true
+  }
+}
+```
+
 ## Error Handling
 
 Always handle errors gracefully:

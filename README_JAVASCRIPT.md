@@ -152,7 +152,7 @@ console.log(`Current Balance: ${depositInfo.currentBalance}`);
 
 // Run pre-deposit hooks (before deposit transaction)
 const preHooksResult = await client.preDepositHooks(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
 );
@@ -160,7 +160,7 @@ console.log('Pre-deposit hooks:', preHooksResult);
 
 // After deposit transaction completes, run post-deposit hooks
 const postHooksResult = await client.postDepositHooks(
-    '1000000000000000000',  // amount
+    '1',  // amount (1 ETH)
     '0x...',                // txHash (transaction hash from your deposit)
     null,                    // tokenAddress
     8453,                    // chainId
@@ -174,7 +174,7 @@ console.log('Post-deposit hooks:', postHooksResult);
 ```javascript
 // Execute deposit directly (includes pre/post hooks)
 const depositResult = await client.deposit(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
 );
@@ -203,7 +203,7 @@ console.log(`Current Balance: ${withdrawInfo.currentBalance}`);
 
 // Run pre-withdraw hooks (before withdraw transaction)
 const preHooksResult = await client.preWithdrawHooks(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     '0x...',                // recipient address
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)
@@ -212,7 +212,7 @@ console.log('Pre-withdraw hooks:', preHooksResult);
 
 // After withdraw transaction completes, run post-withdraw hooks
 const postHooksResult = await client.postWithdrawHooks(
-    '1000000000000000000',  // amount
+    '1',  // amount (1 ETH)
     '0x...',                // txHash (transaction hash from your withdrawal)
     '0x...',                // recipient address
     null,                    // tokenAddress
@@ -227,7 +227,7 @@ console.log('Post-withdraw hooks:', postHooksResult);
 ```javascript
 // Execute withdrawal directly (includes pre/post hooks)
 const withdrawResult = await client.withdraw(
-    '1000000000000000000',  // amount (1 ETH in wei)
+    '1',  // amount (1 ETH)
     '0x...',                // recipient address
     null,                    // tokenAddress (null for native)
     8453                     // chainId (Base chain)

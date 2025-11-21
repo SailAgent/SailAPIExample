@@ -151,7 +151,7 @@ print(f"Current Balance: {deposit_info['currentBalance']}")
 
 # Run pre-deposit hooks (before deposit transaction)
 pre_hooks_result = client.pre_deposit_hooks(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
 )
@@ -159,7 +159,7 @@ print(f"Pre-deposit hooks: {pre_hooks_result}")
 
 # After deposit transaction completes, run post-deposit hooks
 post_hooks_result = client.post_deposit_hooks(
-    amount="1000000000000000000",
+    amount="1",  # 1 ETH
     tx_hash="0x...",                # Transaction hash from your deposit
     token_address=None,
     chain_id=8453,
@@ -173,7 +173,7 @@ print(f"Post-deposit hooks: {post_hooks_result}")
 ```python
 # Execute deposit directly (includes pre/post hooks)
 deposit_result = client.deposit(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
 )
@@ -202,7 +202,7 @@ print(f"Current Balance: {withdraw_info['currentBalance']}")
 
 # Run pre-withdraw hooks (before withdraw transaction)
 pre_hooks_result = client.pre_withdraw_hooks(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     recipient="0x...",              # Recipient address
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain
@@ -211,7 +211,7 @@ print(f"Pre-withdraw hooks: {pre_hooks_result}")
 
 # After withdraw transaction completes, run post-withdraw hooks
 post_hooks_result = client.post_withdraw_hooks(
-    amount="1000000000000000000",
+    amount="1",  # 1 ETH
     tx_hash="0x...",                # Transaction hash from your withdrawal
     recipient="0x...",              # Recipient address
     token_address=None,
@@ -226,7 +226,7 @@ print(f"Post-withdraw hooks: {post_hooks_result}")
 ```python
 # Execute withdrawal directly (includes pre/post hooks)
 withdraw_result = client.withdraw(
-    amount="1000000000000000000",  # 1 ETH in wei
+    amount="1",  # 1 ETH
     recipient="0x...",              # Recipient address
     token_address=None,             # None for native token
     chain_id=8453                   # Base chain

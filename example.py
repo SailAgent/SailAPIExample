@@ -212,7 +212,7 @@ class SailAPIClient:
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            amount: Amount to deposit (in wei or token units)
+            amount: Amount to deposit (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
             token_address: Optional token address
             chain_id: Optional chain ID
             
@@ -250,7 +250,7 @@ class SailAPIClient:
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            amount: Amount to deposit
+            amount: Amount to deposit (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
             token_address: Optional token address
             chain_id: Optional chain ID
             
@@ -280,7 +280,7 @@ class SailAPIClient:
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            amount: Amount that was deposited
+            amount: Amount that was deposited (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
             tx_hash: Transaction hash
             token_address: Optional token address
             chain_id: Optional chain ID
@@ -316,7 +316,7 @@ class SailAPIClient:
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            amount: Amount to withdraw (in wei or token units)
+            amount: Amount to withdraw (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
             token_address: Optional token address
             chain_id: Optional chain ID
             
@@ -355,7 +355,7 @@ class SailAPIClient:
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            amount: Amount to withdraw (in wei or token units)
+            amount: Amount to withdraw (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
             recipient: Recipient address for the withdrawal
             token_address: Optional token address
             chain_id: Optional chain ID
@@ -388,7 +388,7 @@ class SailAPIClient:
         Wallet address is extracted from JWT token, not from parameters.
         
         Args:
-            amount: Amount that was withdrawn (in wei or token units)
+            amount: Amount that was withdrawn (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
             tx_hash: Transaction hash
             recipient: Recipient address for the withdrawal
             token_address: Optional token address

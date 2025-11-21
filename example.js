@@ -186,7 +186,7 @@ class SailAPIClient {
      * Deposit funds.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to deposit (in wei or token units)
+     * @param {string} amount - Amount to deposit (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
      * @returns {Promise<Object>} Deposit response
@@ -215,7 +215,7 @@ class SailAPIClient {
      * Execute pre-deposit hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to deposit
+     * @param {string} amount - Amount to deposit (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
      * @returns {Promise<Object>} Pre-deposit hooks response
@@ -234,7 +234,7 @@ class SailAPIClient {
      * Execute post-deposit hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount that was deposited
+     * @param {string} amount - Amount that was deposited (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string} txHash - Transaction hash
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
@@ -261,7 +261,7 @@ class SailAPIClient {
      * Withdraw funds.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to withdraw (in wei or token units)
+     * @param {string} amount - Amount to withdraw (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
      * @returns {Promise<Object>} Withdraw response
@@ -290,7 +290,7 @@ class SailAPIClient {
      * Execute pre-withdraw hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount to withdraw (in wei or token units)
+     * @param {string} amount - Amount to withdraw (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string} recipient - Recipient address for the withdrawal
      * @param {string|null} tokenAddress - Optional token address
      * @param {number|null} chainId - Optional chain ID
@@ -311,7 +311,7 @@ class SailAPIClient {
      * Execute post-withdraw hooks.
      * Wallet address is extracted from JWT token, not from parameters.
      * 
-     * @param {string} amount - Amount that was withdrawn (in wei or token units)
+     * @param {string} amount - Amount that was withdrawn (human-readable format, e.g., '1' for 1 ETH, '10' for 10 USDC)
      * @param {string} txHash - Transaction hash
      * @param {string} recipient - Recipient address for the withdrawal
      * @param {string|null} tokenAddress - Optional token address

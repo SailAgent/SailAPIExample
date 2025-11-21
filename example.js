@@ -536,8 +536,8 @@ class SailAPIClient {
      * @param {string} vaultAddresses - Comma-separated list of vault addresses
      * @param {number} chainId - Chain ID
      * @param {number} days - Number of days (default: 90)
-     * @param {number|null} startTimestamp - Optional start timestamp
-     * @param {number|null} endTimestamp - Optional end timestamp
+     * @param {string|number|null} startTimestamp - Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
+     * @param {string|number|null} endTimestamp - Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
      * @returns {Promise<Object>} Share price history
      */
     async getSharePriceHistory(vaultAddresses, chainId, days = 90, startTimestamp = null, endTimestamp = null) {
@@ -558,8 +558,8 @@ class SailAPIClient {
      * Wallet address is extracted from JWT token, not from parameters.
      * 
      * @param {string|null} walletAddress - Optional wallet address (only passed to tool if provided)
-     * @param {number|null} startTime - Optional start timestamp in seconds (Unix epoch)
-     * @param {number|null} endTime - Optional end timestamp in seconds (Unix epoch)
+     * @param {string|number|null} startTime - Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
+     * @param {string|number|null} endTime - Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
      * @returns {Promise<number>} Vault information as a simple number (e.g., 10.31)
      */
     async getVaultInfo(walletAddress = null, startTime = null, endTime = null) {

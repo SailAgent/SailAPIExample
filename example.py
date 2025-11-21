@@ -656,8 +656,8 @@ class SailAPIClient:
             vault_addresses: Comma-separated list of vault addresses
             chain_id: Chain ID
             days: Number of days (default: 90)
-            start_timestamp: Optional start timestamp
-            end_timestamp: Optional end timestamp
+            start_timestamp: Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
+            end_timestamp: Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
             
         Returns:
             Share price history
@@ -687,8 +687,8 @@ class SailAPIClient:
         
         Args:
             wallet_address: Optional wallet address (only passed to tool if provided)
-            start_time: Optional start timestamp in seconds (Unix epoch)
-            end_time: Optional end timestamp in seconds (Unix epoch)
+            start_time: Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
+            end_time: Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
             
         Returns:
             Vault information as a simple number (e.g., 10.31)

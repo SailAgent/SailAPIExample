@@ -435,6 +435,60 @@ if (chatbots.chatbots.length > 0) {
 }
 ```
 
+### Vault Operations
+
+Interact with vault information and share price history:
+
+#### Get Vault Info
+
+```javascript
+// Get vault info with datetime strings (ISO 8601 format)
+const vaultInfo = await client.getVaultInfo(
+    '0x...',                    // Optional wallet address
+    '2024-01-01T00:00:00Z',     // ISO 8601 datetime string
+    '2024-12-31T23:59:59Z'      // ISO 8601 datetime string
+);
+console.log(`Vault Info: ${vaultInfo}`);
+
+// Or use Unix timestamps
+const startTimestamp = Math.floor(new Date('2024-01-01').getTime() / 1000);
+const endTimestamp = Math.floor(new Date('2024-12-31').getTime() / 1000);
+
+const vaultInfo2 = await client.getVaultInfo(
+    '0x...',
+    startTimestamp,  // Unix timestamp in seconds
+    endTimestamp     // Unix timestamp in seconds
+);
+console.log(`Vault Info: ${vaultInfo2}`);
+```
+
+#### Get Share Price History
+
+```javascript
+// Get share price history with datetime strings (ISO 8601 format)
+const priceHistory = await client.getSharePriceHistory(
+    '0x1234...,0x5678...',      // Comma-separated vault addresses
+    8453,                        // Base chain
+    90,                          // Number of days (default: 90)
+    '2024-01-01T00:00:00Z',     // ISO 8601 datetime string
+    '2024-12-31T23:59:59Z'      // ISO 8601 datetime string
+);
+console.log('Share Price History:', priceHistory);
+
+// Or use Unix timestamps
+const startTimestamp = Math.floor(new Date('2024-01-01').getTime() / 1000);
+const endTimestamp = Math.floor(new Date('2024-12-31').getTime() / 1000);
+
+const priceHistory2 = await client.getSharePriceHistory(
+    '0x1234...,0x5678...',
+    8453,
+    90,
+    startTimestamp,  // Unix timestamp in seconds
+    endTimestamp     // Unix timestamp in seconds
+);
+console.log('Share Price History:', priceHistory2);
+```
+
 ## Error Handling
 
 Always handle errors gracefully:

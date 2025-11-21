@@ -427,6 +427,66 @@ if chatbots['chatbots']:
         print("---")
 ```
 
+### Vault Operations
+
+Interact with vault information and share price history:
+
+#### Get Vault Info
+
+```python
+from datetime import datetime
+
+# Get vault info with datetime strings (ISO 8601 format)
+vault_info = client.get_vault_info(
+    wallet_address="0x...",  # Optional wallet address
+    start_time="2024-01-01T00:00:00Z",  # ISO 8601 datetime string
+    end_time="2024-12-31T23:59:59Z"     # ISO 8601 datetime string
+)
+print(f"Vault Info: {vault_info}")
+
+# Or use Unix timestamps
+import time
+start_timestamp = int(time.mktime(datetime(2024, 1, 1).timetuple()))
+end_timestamp = int(time.mktime(datetime(2024, 12, 31).timetuple()))
+
+vault_info = client.get_vault_info(
+    wallet_address="0x...",
+    start_time=start_timestamp,  # Unix timestamp in seconds
+    end_time=end_timestamp        # Unix timestamp in seconds
+)
+print(f"Vault Info: {vault_info}")
+```
+
+#### Get Share Price History
+
+```python
+from datetime import datetime
+
+# Get share price history with datetime strings (ISO 8601 format)
+price_history = client.get_share_price_history(
+    vault_addresses="0x1234...,0x5678...",  # Comma-separated vault addresses
+    chain_id=8453,                           # Base chain
+    days=90,                                 # Number of days (default: 90)
+    start_timestamp="2024-01-01T00:00:00Z",  # ISO 8601 datetime string
+    end_timestamp="2024-12-31T23:59:59Z"     # ISO 8601 datetime string
+)
+print(f"Share Price History: {price_history}")
+
+# Or use Unix timestamps
+import time
+start_timestamp = int(time.mktime(datetime(2024, 1, 1).timetuple()))
+end_timestamp = int(time.mktime(datetime(2024, 12, 31).timetuple()))
+
+price_history = client.get_share_price_history(
+    vault_addresses="0x1234...,0x5678...",
+    chain_id=8453,
+    days=90,
+    start_timestamp=start_timestamp,  # Unix timestamp in seconds
+    end_timestamp=end_timestamp        # Unix timestamp in seconds
+)
+print(f"Share Price History: {price_history}")
+```
+
 ## Error Handling
 
 Always handle errors gracefully:

@@ -59,28 +59,26 @@ Get historical share price data for one or more vaults.
 
 ```json
 {
-  "sharePriceHistories": [
-    {
-      "name": "Vault Name",
-      "address": "0x...",
-      "price_history": [
-        [1696118400, 1.05],
-        [1696204800, 1.06]
-      ]
-    }
-  ],
-  "rawOutput": {},
-  "formatError": null
+  "apy_7d": 6.8,
+  "apy_30d": 8.42,
+  "apy_90d": 10.0,
+  "volatility_30d": 2.52,
+  "max_drawdown": 4.53,
+  "sharpe_ratio": 1.3568,
+  "current_balance": 353741.69,
+  "data_points": 58
 }
 ```
 
 **Response Fields:**
-- `sharePriceHistories` (array): List of share price history items
-  - `name` (string): Vault name
-  - `address` (string): Vault address
-  - `price_history` (array): Array of `[timestamp, price]` tuples
-- `rawOutput` (object, optional): Raw tool output if available
-- `formatError` (string, optional): Error message if tool output format doesn't match expected format
+- `apy_7d` (number): 7-day annualized percentage yield
+- `apy_30d` (number): 30-day annualized percentage yield
+- `apy_90d` (number): 90-day annualized percentage yield
+- `volatility_30d` (number): 30-day volatility
+- `max_drawdown` (number): Maximum drawdown
+- `sharpe_ratio` (number): Sharpe ratio
+- `current_balance` (number): Current balance
+- `data_points` (number): Number of data points used in the analysis
 
 #### JavaScript Example (using fetch)
 
@@ -133,20 +131,15 @@ fetch(url.toString(), {
     return response.json();
   })
   .then(data => {
-    console.log('Share Price Histories:', data.sharePriceHistories);
-    console.log('Raw Output:', data.rawOutput);
-    if (data.formatError) {
-      console.warn('Format Error:', data.formatError);
-    }
-    
-    // Process each vault's price history
-    data.sharePriceHistories.forEach(vault => {
-      console.log(`Vault: ${vault.name} (${vault.address})`);
-      console.log(`Price History Points: ${vault.price_history.length}`);
-      vault.price_history.forEach(([timestamp, price]) => {
-        console.log(`  ${new Date(timestamp * 1000).toISOString()}: ${price}`);
-      });
-    });
+    console.log('Performance Metrics:', data);
+    console.log(`7-day APY: ${data.apy_7d}%`);
+    console.log(`30-day APY: ${data.apy_30d}%`);
+    console.log(`90-day APY: ${data.apy_90d}%`);
+    console.log(`30-day Volatility: ${data.volatility_30d}%`);
+    console.log(`Max Drawdown: ${data.max_drawdown}%`);
+    console.log(`Sharpe Ratio: ${data.sharpe_ratio}`);
+    console.log(`Current Balance: ${data.current_balance}`);
+    console.log(`Data Points: ${data.data_points}`);
   })
   .catch(error => {
     console.error('Error fetching share price history:', error);
@@ -208,19 +201,15 @@ try:
     
     data = response.json()
     
-    print("Share Price Histories:", data["sharePriceHistories"])
-    print("Raw Output:", data.get("rawOutput"))
-    if data.get("formatError"):
-        print("Format Error:", data["formatError"])
-    
-    # Process each vault's price history
-    for vault in data["sharePriceHistories"]:
-        print(f"Vault: {vault['name']} ({vault['address']})")
-        print(f"Price History Points: {len(vault['price_history'])}")
-        for timestamp, price in vault["price_history"]:
-            from datetime import datetime
-            dt = datetime.fromtimestamp(timestamp)
-            print(f"  {dt.isoformat()}: {price}")
+    print("Performance Metrics:", data)
+    print(f"7-day APY: {data['apy_7d']}%")
+    print(f"30-day APY: {data['apy_30d']}%")
+    print(f"90-day APY: {data['apy_90d']}%")
+    print(f"30-day Volatility: {data['volatility_30d']}%")
+    print(f"Max Drawdown: {data['max_drawdown']}%")
+    print(f"Sharpe Ratio: {data['sharpe_ratio']}")
+    print(f"Current Balance: {data['current_balance']}")
+    print(f"Data Points: {data['data_points']}")
             
 except requests.exceptions.HTTPError as e:
     print(f"HTTP Error: {e.response.status_code}")
@@ -235,7 +224,7 @@ except requests.exceptions.RequestException as e:
 
 ### 2. Vault Info
 
-Get detailed information about a specific vault.
+Get vault information. Returns a simple number.
 
 **Endpoint:** `GET /api/v1/projects/{project_id}/pages/{page_id}/vault-info`
 
@@ -260,30 +249,11 @@ Get detailed information about a specific vault.
 
 #### Response Format
 
-```json
-{
-  "chain": "base",
-  "address": "0x...",
-  "name": "Vault Name",
-  "protocol": "Protocol Name",
-  "entry_cost_bps": 10,
-  "exit_cost_bps": 10,
-  "max_deposit_amount": 1000000000000.0,
-  "risk_free_rate": 0.05,
-  "last_updated_timestamp": 1696118400
-}
+```
+10.31
 ```
 
-**Response Fields:**
-- `chain` (string): Chain name (e.g., "base", "ethereum")
-- `address` (string): Vault address
-- `name` (string): Vault name
-- `protocol` (string): Protocol name
-- `entry_cost_bps` (integer): Entry cost in basis points (1 bps = 0.01%)
-- `exit_cost_bps` (integer): Exit cost in basis points
-- `max_deposit_amount` (float): Maximum deposit amount
-- `risk_free_rate` (float): Risk-free rate (e.g., 0.05 = 5%)
-- `last_updated_timestamp` (integer): Last update timestamp in seconds (Unix epoch)
+**Response:** A simple number (float) representing the vault information.
 
 #### JavaScript Example (using fetch)
 
@@ -320,15 +290,8 @@ fetch(url.toString(), {
   })
   .then(data => {
     console.log('Vault Info:', data);
-    console.log(`Vault: ${data.name}`);
-    console.log(`Address: ${data.address}`);
-    console.log(`Chain: ${data.chain}`);
-    console.log(`Protocol: ${data.protocol}`);
-    console.log(`Entry Cost: ${data.entry_cost_bps} bps (${data.entry_cost_bps / 100}%)`);
-    console.log(`Exit Cost: ${data.exit_cost_bps} bps (${data.exit_cost_bps / 100}%)`);
-    console.log(`Max Deposit: ${data.max_deposit_amount}`);
-    console.log(`Risk-Free Rate: ${data.risk_free_rate * 100}%`);
-    console.log(`Last Updated: ${new Date(data.last_updated_timestamp * 1000).toISOString()}`);
+    // Response is a simple number
+    console.log(`Vault Value: ${data}`);
   })
   .catch(error => {
     console.error('Error fetching vault info:', error);
@@ -377,16 +340,8 @@ try:
     data = response.json()
     
     print("Vault Info:", data)
-    print(f"Vault: {data['name']}")
-    print(f"Address: {data['address']}")
-    print(f"Chain: {data['chain']}")
-    print(f"Protocol: {data['protocol']}")
-    print(f"Entry Cost: {data['entry_cost_bps']} bps ({data['entry_cost_bps'] / 100}%)")
-    print(f"Exit Cost: {data['exit_cost_bps']} bps ({data['exit_cost_bps'] / 100}%)")
-    print(f"Max Deposit: {data['max_deposit_amount']}")
-    print(f"Risk-Free Rate: {data['risk_free_rate'] * 100}%")
-    last_updated = datetime.fromtimestamp(data['last_updated_timestamp'])
-    print(f"Last Updated: {last_updated.isoformat()}")
+    # Response is a simple number
+    print(f"Vault Value: {data}")
     
 except requests.exceptions.HTTPError as e:
     print(f"HTTP Error: {e.response.status_code}")
@@ -482,11 +437,14 @@ async function getVaultInfo(token, walletAddress, startTime, endTime) {
       8453,
       90
     );
-    console.log('Price History:', priceHistory);
+    console.log('Performance Metrics:', priceHistory);
+    console.log(`7-day APY: ${priceHistory.apy_7d}%`);
+    console.log(`30-day APY: ${priceHistory.apy_30d}%`);
+    console.log(`90-day APY: ${priceHistory.apy_90d}%`);
     
     // Get info for a single vault
     const vaultInfo = await getVaultInfo(token, '0xabc...', 1696118400, 1698796800);
-    console.log('Vault Info:', vaultInfo);
+    console.log('Vault Info:', vaultInfo); // Simple number (e.g., 10.31)
   } catch (error) {
     console.error('Error:', error);
   }
@@ -539,7 +497,7 @@ def get_vault_info(
     wallet_address: str = None,
     start_time: int = None,
     end_time: int = None
-) -> Dict[str, Any]:
+) -> float:
     url = f"{BASE_URL}/api/v1/projects/{PROJECT_ID}/pages/{PAGE_ID}/vault-info"
     params = {}
     if wallet_address:
@@ -570,11 +528,14 @@ if __name__ == "__main__":
             8453,
             90
         )
-        print("Price History:", price_history)
+        print("Performance Metrics:", price_history)
+        print(f"7-day APY: {price_history['apy_7d']}%")
+        print(f"30-day APY: {price_history['apy_30d']}%")
+        print(f"90-day APY: {price_history['apy_90d']}%")
         
         # Get info for a single vault
         vault_info = get_vault_info(token, "0xabc...", 1696118400, 1698796800)
-        print("Vault Info:", vault_info)
+        print("Vault Info:", vault_info)  # Simple number (e.g., 10.31)
     except Exception as e:
         print(f"Error: {e}")
 ```
@@ -691,11 +652,15 @@ except requests.exceptions.RequestException as e:
    - Optimism: 10
    - Polygon: 137
 
-6. **Price History Format**: The `price_history` field contains an array of `[timestamp, price]` tuples where:
-   - `timestamp` is a Unix timestamp in seconds
-   - `price` is a floating-point number representing the share price
+6. **Share Price History Response**: Returns a performance metrics object with:
+   - `apy_7d`, `apy_30d`, `apy_90d`: Annualized percentage yields for different time periods
+   - `volatility_30d`: 30-day volatility
+   - `max_drawdown`: Maximum drawdown
+   - `sharpe_ratio`: Sharpe ratio
+   - `current_balance`: Current balance
+   - `data_points`: Number of data points used in the analysis
 
-7. **Basis Points**: Costs are returned in basis points (bps). To convert to percentage, divide by 100 (e.g., 10 bps = 0.10%).
+7. **Vault Info Response**: Returns a simple number (float) representing the vault information (e.g., 10.31).
 
 ## Additional Resources
 

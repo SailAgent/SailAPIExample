@@ -267,6 +267,30 @@ Query vault information and share price history for BasisOS vaults:
 - `GET /api/v1/projects/{project_id}/pages/{page_id}/share-price-history` - Get share price history for vaults
 - `GET /api/v1/projects/{project_id}/pages/{page_id}/vault-info` - Get vault information
 
+### 🔧 Custom APIs
+
+Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints.
+
+- **Get custom API metadata**: Get custom API configuration and input parameters
+- **Execute custom API**: Execute a custom API endpoint with parameters
+
+📖 **Examples**: [Python](README_PYTHON.md#custom-apis) | [JavaScript](README_JAVASCRIPT.md#custom-apis)
+
+**Endpoints:**
+- `GET /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}` - Get custom API metadata
+- `POST /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}` - Execute custom API
+
+**Important:** Custom API POST requests require parameters to be nested in a `params` field:
+
+```json
+{
+  "params": {
+    "param1": "value1",
+    "param2": 42
+  }
+}
+```
+
 ## Language-Specific Guides
 
 Choose your preferred language for detailed examples and implementation guides:

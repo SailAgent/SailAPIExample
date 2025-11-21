@@ -489,6 +489,54 @@ const priceHistory2 = await client.getSharePriceHistory(
 console.log('Share Price History:', priceHistory2);
 ```
 
+### Custom APIs
+
+Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints.
+
+#### Get Custom API Metadata
+
+Get custom API configuration and input parameters:
+
+```javascript
+// Get custom API metadata
+const apiId = 'custom_1234567890_abc123';
+const apiMetadata = await client.getCustomAPI(apiId);
+console.log(`API Name: ${apiMetadata.name}`);
+console.log(`Description: ${apiMetadata.description}`);
+console.log(`Input Parameters:`, apiMetadata.inputParams || []);
+```
+
+#### Execute Custom API
+
+Execute a custom API endpoint with parameters:
+
+```javascript
+// Execute custom API with parameters
+const apiId = 'custom_1234567890_abc123';
+const params = {
+    param1: 'value1',
+    param2: 42,
+    param3: true
+};
+
+// Important: Parameters are automatically wrapped in a "params" object
+// The request body will be: {"params": {"param1": "value1", "param2": 42, "param3": true}}
+const result = await client.postCustomAPI(apiId, params);
+console.log('Result:', result);
+```
+
+**Important:** Custom API POST requests require parameters to be nested in a `params` field. The `postCustomAPI` method automatically wraps your parameters in this structure. The actual request body sent to the server will be:
+
+```json
+{
+  "params": {
+    "param1": "value1",
+    "param2": 42,
+    "param3": true
+  }
+}
+```
+
 ## Error Handling
 
 Always handle errors gracefully:

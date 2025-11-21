@@ -789,11 +789,12 @@ class SailAPIClient {
      * Wallet address is extracted from JWT token, not from parameters.
      * 
      * @param {string} apiId - Custom API ID
-     * @param {Object} payload - Request payload
+     * @param {Object} payload - Request payload (will be wrapped in a "params" object)
      * @returns {Promise<Object>} Custom API response
      */
     async postCustomAPI(apiId, payload) {
-        return this._request('POST', `/custom/${apiId}`, { data: payload });
+        // Custom APIs require parameters to be nested in a "params" field
+        return this._request('POST', `/custom/${apiId}`, { data: { params: payload } });
     }
 }
 

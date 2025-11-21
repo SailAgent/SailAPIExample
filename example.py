@@ -960,12 +960,13 @@ class SailAPIClient:
         
         Args:
             api_id: Custom API ID
-            payload: Request payload
+            payload: Request payload (will be wrapped in a "params" object)
             
         Returns:
             Custom API response
         """
-        return self._request("POST", f"/custom/{api_id}", json=payload)
+        # Custom APIs require parameters to be nested in a "params" field
+        return self._request("POST", f"/custom/{api_id}", json={"params": payload})
 
 
 # ============================================================================

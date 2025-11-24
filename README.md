@@ -269,7 +269,7 @@ Query vault information and share price history for BasisOS vaults:
 
 ### 🔧 Custom APIs
 
-Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints.
+Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints. Custom APIs can be configured as either GET or POST requests.
 
 - **Get custom API metadata**: Get custom API configuration and input parameters
 - **Execute custom API**: Execute a custom API endpoint with parameters
@@ -277,19 +277,25 @@ Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom AP
 📖 **Examples**: [Python](README_PYTHON.md#custom-apis) | [JavaScript](README_JAVASCRIPT.md#custom-apis)
 
 **Endpoints:**
-- `GET /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}` - Get custom API metadata
-- `POST /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}` - Execute custom API
+- `GET /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}` - Get custom API metadata (or execute if method is GET)
+- `POST /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}` - Execute custom API (if method is POST)
 
-**Important:** Custom API POST requests require parameters to be nested in a `params` field:
-
-```json
-{
-  "params": {
-    "param1": "value1",
-    "param2": 42
+**HTTP Methods:**
+- **GET requests**: Parameters are passed as query parameters in the URL
+  ```
+  GET /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}?param1=value1&param2=42
+  ```
+- **POST requests**: Parameters are nested in a `params` field in the request body:
+  ```json
+  {
+    "params": {
+      "param1": "value1",
+      "param2": 42
+    }
   }
-}
-```
+  ```
+
+The SDK clients automatically detect the custom API's method and use the appropriate HTTP method and parameter format.
 
 ## Language-Specific Guides
 

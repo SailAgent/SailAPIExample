@@ -491,7 +491,7 @@ console.log('Share Price History:', priceHistory2);
 
 ### Custom APIs
 
-Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints.
+Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints. Custom APIs can be configured as either GET or POST requests.
 
 #### Get Custom API Metadata
 
@@ -503,12 +503,13 @@ const apiId = 'custom_1234567890_abc123';
 const apiMetadata = await client.getCustomAPI(apiId);
 console.log(`API Name: ${apiMetadata.name}`);
 console.log(`Description: ${apiMetadata.description}`);
+console.log(`Method: ${apiMetadata.method || 'POST'}`);  // GET or POST
 console.log(`Input Parameters:`, apiMetadata.inputParams || []);
 ```
 
 #### Execute Custom API
 
-Execute a custom API endpoint with parameters:
+Execute a custom API endpoint with parameters. The SDK automatically detects whether the custom API uses GET or POST and formats the request accordingly:
 
 ```javascript
 // Execute custom API with parameters
@@ -519,23 +520,33 @@ const params = {
     param3: true
 };
 
-// Important: Parameters are automatically wrapped in a "params" object
-// The request body will be: {"params": {"param1": "value1", "param2": 42, "param3": true}}
+// The SDK automatically:
+// - Checks the custom API's method (GET or POST)
+// - For GET: Uses query parameters (?param1=value1&param2=42)
+// - For POST: Wraps params in a "params" object in the request body
 const result = await client.postCustomAPI(apiId, params);
 console.log('Result:', result);
 ```
 
-**Important:** Custom API POST requests require parameters to be nested in a `params` field. The `postCustomAPI` method automatically wraps your parameters in this structure. The actual request body sent to the server will be:
+**HTTP Methods:**
 
-```json
-{
-  "params": {
-    "param1": "value1",
-    "param2": 42,
-    "param3": true
+- **GET requests**: Parameters are automatically converted to query parameters:
+  ```
+  GET /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}?param1=value1&param2=42
+  ```
+
+- **POST requests**: Parameters are automatically wrapped in a `params` object:
+  ```json
+  {
+    "params": {
+      "param1": "value1",
+      "param2": 42,
+      "param3": true
+    }
   }
-}
-```
+  ```
+
+The SDK client's `postCustomAPI` method (or `client.custom.run()` in the newer SDK) automatically handles both GET and POST methods based on the custom API's configuration.
 
 ## Error Handling
 

@@ -489,7 +489,7 @@ print(f"Share Price History: {price_history}")
 
 ### Custom APIs
 
-Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints.
+Execute custom API endpoints created in the Studio UI (Page APIs tab). Custom APIs allow you to execute tools or graphs as API endpoints. Custom APIs can be configured as either GET or POST requests.
 
 #### Get Custom API Metadata
 
@@ -501,12 +501,13 @@ api_id = "custom_1234567890_abc123"
 api_metadata = client.get_custom_api(api_id)
 print(f"API Name: {api_metadata['name']}")
 print(f"Description: {api_metadata['description']}")
+print(f"Method: {api_metadata.get('method', 'POST')}")  # GET or POST
 print(f"Input Parameters: {api_metadata.get('inputParams', [])}")
 ```
 
 #### Execute Custom API
 
-Execute a custom API endpoint with parameters:
+Execute a custom API endpoint with parameters. The SDK automatically detects whether the custom API uses GET or POST and formats the request accordingly:
 
 ```python
 # Execute custom API with parameters
@@ -517,23 +518,33 @@ params = {
     "param3": True
 }
 
-# Important: Parameters are automatically wrapped in a "params" object
-# The request body will be: {"params": {"param1": "value1", "param2": 42, "param3": True}}
+# The SDK automatically:
+# - Checks the custom API's method (GET or POST)
+# - For GET: Uses query parameters (?param1=value1&param2=42)
+# - For POST: Wraps params in a "params" object in the request body
 result = client.post_custom_api(api_id, params)
 print(f"Result: {result}")
 ```
 
-**Important:** Custom API POST requests require parameters to be nested in a `params` field. The `post_custom_api` method automatically wraps your parameters in this structure. The actual request body sent to the server will be:
+**HTTP Methods:**
 
-```json
-{
-  "params": {
-    "param1": "value1",
-    "param2": 42,
-    "param3": true
+- **GET requests**: Parameters are automatically converted to query parameters:
+  ```
+  GET /api/v1/projects/{project_id}/pages/{page_id}/custom/{api_id}?param1=value1&param2=42
+  ```
+
+- **POST requests**: Parameters are automatically wrapped in a `params` object:
+  ```json
+  {
+    "params": {
+      "param1": "value1",
+      "param2": 42,
+      "param3": true
+    }
   }
-}
-```
+  ```
+
+The SDK client's `post_custom_api` method (or `client.custom.run()` in the newer SDK) automatically handles both GET and POST methods based on the custom API's configuration.
 
 ## Error Handling
 

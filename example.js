@@ -2,7 +2,7 @@
  * SailBE SDK API Example - JavaScript/Node.js
  * 
  * This script demonstrates how to:
- * 1. Authenticate using wallet signatures
+ * 1. Authenticate using direct or SIWE wallet signatures
  * 2. Use JWT tokens for subsequent API requests
  * 3. Call all available SDK endpoints
  * 
@@ -16,6 +16,7 @@ const { ethers } = require('ethers');
 const axios = require('axios');
 const fs = require('fs');
 const FormData = require('form-data');
+require('dotenv').config();
 
 // ============================================================================
 // CONFIGURATION
@@ -23,18 +24,18 @@ const FormData = require('form-data');
 
 // Base URL of the Sail API server
 // Production API URL: https://app.sail.money/prod
-const BASE_URL = 'https://app.sail.money/prod';
+const BASE_URL = process.env.SAIL_API_URL || 'https://app.sail.money/prod';
 
 // Project and Page IDs
 // Default values for Sail production
-const PROJECT_ID = 'sail';
-const PAGE_ID = 'home';
+const PROJECT_ID = process.env.SAIL_PROJECT_ID || 'sail';
+const PAGE_ID = process.env.SAIL_PAGE_ID || 'home';
 
 // Wallet configuration
 // IMPORTANT: Never commit private keys to version control!
 // Get your private key from: https://sail.money/manage-wallet/7702
 // Use environment variables or secure key management in production
-const PRIVATE_KEY = '0x' + '0'.repeat(64); // Replace with your private key
+const PRIVATE_KEY = process.env.SAIL_PRIVATE_KEY || ('0x' + '0'.repeat(64)); // Replace with your private key
 let WALLET_ADDRESS = null; // Will be derived from private key
 
 // ============================================================================
@@ -143,18 +144,95 @@ class SailAPIClient {
      * @param {string} signature - Signature of the authentication message
      * @returns {Promise<Object>} Authentication response with token
      */
-    async authenticate(walletAddress, signature) {
+    async authenticate(walletAddress, signature = null, authPayload = null, domain = null) {
         const url = `${this.baseUrl}${this.basePath}/authenticate`;
         const payload = {
-            walletAddress,
-            signature
+            walletAddress
         };
+        if (signature) payload.signature = signature;
+        if (authPayload) payload.payload = authPayload;
+        if (domain) payload.domain = domain;
 
         const response = await axios.post(url, payload);
         
         // Store token for future requests
-        this.token = response.data.token;
+        if (response.data.token) {
+            this.token = response.data.token;
+        }
         
+        return response.data;
+    }
+
+    /**
+     * Request the unique direct-auth payload for a smart account wallet.
+     *
+     * @param {string} walletAddress - Smart account wallet address
+     * @param {string|null} domain - Optional SIWE domain override
+     * @returns {Promise<{payload: string, instructionMessage?: string}>} Direct-auth payload response
+     */
+    async requestDirectAuthPayload(walletAddress, domain = null) {
+        return this.authenticate(walletAddress, null, null, domain);
+    }
+
+    /**
+     * Complete direct authentication with the signed direct-auth payload.
+     *
+     * @param {string} walletAddress - Smart account wallet address
+     * @param {string} signature - Signature over the direct-auth payload
+     * @param {string} authPayload - Payload returned by `requestDirectAuthPayload`
+     * @param {string|null} domain - Optional SIWE domain override
+     * @returns {Promise<Object>} Authentication response with token
+     */
+    async completeDirectAuth(walletAddress, signature, authPayload, domain = null) {
+        return this.authenticate(walletAddress, signature, authPayload, domain);
+    }
+
+    /**
+     * Start custom SIWE authentication.
+     *
+     * @param {string} address - Admin signer wallet address
+     * @param {number} chainId - Chain ID used to render the SIWE message
+     * @param {string|null} domain - Optional SIWE domain override
+     * @param {"byWallet"|"byUser"} identityMode - Identity mode (`byWallet` recommended, `byUser` legacy only)
+     * @returns {Promise<{sessionId: string, message: string}>} SIWE auth session
+     */
+    async initiateSiweAuth(address, chainId = 8453, domain = null, identityMode = 'byWallet') {
+        const url = `${this.baseUrl}${this.basePath}/auth/initiate`;
+        const payload = {
+            method: 'siwe',
+            address,
+            chainId,
+            identityMode
+        };
+        if (domain) {
+            payload.domain = domain;
+        }
+
+        const response = await axios.post(url, payload);
+        return response.data;
+    }
+
+    /**
+     * Complete custom SIWE authentication.
+     *
+     * @param {string} sessionId - Session ID returned by `initiateSiweAuth`
+     * @param {string} signature - Signature over the SIWE message
+     * @param {string} walletAddress - Admin signer wallet address
+     * @param {"byWallet"|"byUser"} identityMode - Identity mode used during initiation
+     * @returns {Promise<Object>} Authentication response with token
+     */
+    async completeSiweAuth(sessionId, signature, walletAddress, identityMode = 'byWallet') {
+        const url = `${this.baseUrl}${this.basePath}/auth/complete`;
+        const payload = {
+            method: 'siwe',
+            sessionId,
+            signature,
+            walletAddress,
+            identityMode
+        };
+
+        const response = await axios.post(url, payload);
+        this.token = response.data.token;
         return response.data;
     }
 
@@ -176,6 +254,45 @@ class SailAPIClient {
         if (chainId) params.chainId = chainId;
 
         return this._request('GET', '/balance', { params });
+    }
+
+    // ========================================================================
+    // METRICS
+    // ========================================================================
+
+    /**
+     * Execute a configured metrics endpoint.
+     *
+     * @param {string} endpointId - Metrics endpoint ID
+     * @param {Object|null} params - Optional query params passed through to the configured tool/graph
+     * @returns {Promise<Object>} Metrics response shaped like { message, result }
+     */
+    async getMetrics(endpointId, params = null) {
+        return this._request('GET', `/metrics/${endpointId}`, { params: params || {} });
+    }
+
+    async getMetricsBalance(params = null) {
+        return this.getMetrics('balance', params);
+    }
+
+    async getMetricsEarnings(params = null) {
+        return this.getMetrics('earnings', params);
+    }
+
+    async getMetricsHistory(params = null) {
+        return this.getMetrics('history', params);
+    }
+
+    async getMetricsPortfolio(params = null) {
+        return this.getMetrics('portfolio', params);
+    }
+
+    async getMetricsUserMetrics(params = null) {
+        return this.getMetrics('user-metrics', params);
+    }
+
+    async getMetricsYield(params = null) {
+        return this.getMetrics('yield', params);
     }
 
     // ========================================================================
@@ -526,58 +643,6 @@ class SailAPIClient {
     }
 
     // ========================================================================
-    // VAULT
-    // ========================================================================
-
-    /**
-     * Get share price history for vaults.
-     * Wallet address is extracted from JWT token, not from parameters.
-     * 
-     * @param {string} vaultAddresses - Comma-separated list of vault addresses
-     * @param {number} chainId - Chain ID
-     * @param {number} days - Number of days (default: 90)
-     * @param {string|number|null} startTimestamp - Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
-     * @param {string|number|null} endTimestamp - Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
-     * @returns {Promise<Object>} Share price history
-     */
-    async getSharePriceHistory(vaultAddresses, chainId, days = 90, startTimestamp = null, endTimestamp = null) {
-        const params = {
-            vaultAddresses,
-            chainId,
-            days
-        };
-        if (startTimestamp) params.startTimestamp = startTimestamp;
-        if (endTimestamp) params.endTimestamp = endTimestamp;
-
-        return this._request('GET', '/share-price-history', { params });
-    }
-
-    /**
-     * Get vault information.
-     * Vault address and chain ID are configured in the tool/graph, not passed as parameters.
-     * Wallet address is extracted from JWT token, not from parameters.
-     * 
-     * @param {string|null} walletAddress - Optional wallet address (only passed to tool if provided)
-     * @param {string|number|null} startTime - Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
-     * @param {string|number|null} endTime - Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
-     * @returns {Promise<number>} Vault information as a simple number (e.g., 10.31)
-     */
-    async getVaultInfo(walletAddress = null, startTime = null, endTime = null) {
-        const params = {};
-        if (walletAddress) {
-            params.walletAddress = walletAddress;
-        }
-        if (startTime !== null) {
-            params.startTime = startTime;
-        }
-        if (endTime !== null) {
-            params.endTime = endTime;
-        }
-
-        return this._request('GET', '/vault-info', { params });
-    }
-
-    // ========================================================================
     // CHATBOT
     // ========================================================================
 
@@ -817,13 +882,18 @@ async function main() {
 
     // Step 1: Authenticate
     console.log('\n=== Step 1: Authentication ===');
-    const authMessage = 'Authenticate SDK agent for Sail API';
-    const signature = await signMessage(authMessage, PRIVATE_KEY);
-    console.log(`Signing message: ${authMessage}`);
+    const directAuthPayload = await client.requestDirectAuthPayload(walletAddress);
+    const signature = await signMessage(directAuthPayload.payload, PRIVATE_KEY);
+    console.log('Requested direct-auth payload from /authenticate');
+    console.log(`Signing payload: ${directAuthPayload.payload.substring(0, 80)}...`);
     console.log(`Signature: ${signature.substring(0, 20)}...`);
 
     try {
-        const authResponse = await client.authenticate(walletAddress, signature);
+        const authResponse = await client.completeDirectAuth(
+            walletAddress,
+            signature,
+            directAuthPayload.payload
+        );
         console.log('Authentication successful!');
         console.log(`Token: ${authResponse.token.substring(0, 20)}...`);
         console.log(`User ID: ${authResponse.user_id}`);
@@ -847,7 +917,17 @@ async function main() {
     }
 
     // Step 3: Get Deposit Info
-    console.log('\n=== Step 3: Get Deposit Info ===');
+    console.log('\n=== Step 3: Get Metrics Balance ===');
+    try {
+        const metricsBalance = await client.getMetricsBalance();
+        console.log(`Metrics Message: ${metricsBalance.message}`);
+        console.log(`Metrics Result: ${JSON.stringify(metricsBalance.result)}`);
+    } catch (error) {
+        console.error(`Get metrics balance failed: ${error.message}`);
+    }
+
+    // Step 4: Get Deposit Info
+    console.log('\n=== Step 4: Get Deposit Info ===');
     try {
         const depositInfo = await client.getDepositInfo();
         console.log(`Current Balance: ${depositInfo.currentBalance}`);
@@ -856,8 +936,8 @@ async function main() {
         console.error(`Get deposit info failed: ${error.message}`);
     }
 
-    // Step 4: Get Portfolio Total Balance
-    console.log('\n=== Step 4: Get Portfolio Total Balance ===');
+    // Step 5: Get Portfolio Total Balance
+    console.log('\n=== Step 5: Get Portfolio Total Balance ===');
     try {
         const portfolioBalance = await client.getPortfolioTotalBalance();
         console.log(`Total Balance: ${portfolioBalance.balance}`);
@@ -866,8 +946,8 @@ async function main() {
         console.error(`Get portfolio balance failed: ${error.message}`);
     }
 
-    // Step 5: Get Page Info
-    console.log('\n=== Step 5: Get Page Info ===');
+    // Step 6: Get Page Info
+    console.log('\n=== Step 6: Get Page Info ===');
     try {
         const pageInfo = await client.getPage();
         console.log(`Page Title: ${pageInfo.title}`);
@@ -876,8 +956,8 @@ async function main() {
         console.error(`Get page info failed: ${error.message}`);
     }
 
-    // Step 6: Get Tier Info
-    console.log('\n=== Step 6: Get Tier Info ===');
+    // Step 7: Get Tier Info
+    console.log('\n=== Step 7: Get Tier Info ===');
     try {
         const tierInfo = await client.getTierInfo();
         console.log(`User Tier: ${JSON.stringify(tierInfo.userTier)}`);
@@ -886,8 +966,8 @@ async function main() {
         console.error(`Get tier info failed: ${error.message}`);
     }
 
-    // Step 7: Get Chatbots
-    console.log('\n=== Step 7: Get Chatbots ===');
+    // Step 8: Get Chatbots
+    console.log('\n=== Step 8: Get Chatbots ===');
     try {
         const chatbots = await client.getChatbots();
         console.log(`Found ${chatbots.chatbots.length} chatbot(s)`);
@@ -898,8 +978,8 @@ async function main() {
         console.error(`Get chatbots failed: ${error.message}`);
     }
 
-    // Step 8: Get Automation Status
-    console.log('\n=== Step 8: Get Automation Status ===');
+    // Step 9: Get Automation Status
+    console.log('\n=== Step 9: Get Automation Status ===');
     try {
         const automationStatus = await client.getAutomationStatus();
         console.log(`Has Job: ${automationStatus.hasJob}`);
@@ -920,4 +1000,3 @@ if (require.main === module) {
 }
 
 module.exports = { SailAPIClient, signMessage, getWalletAddress };
-

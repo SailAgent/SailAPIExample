@@ -2,7 +2,7 @@
 SailBE SDK API Example - Python
 
 This script demonstrates how to:
-1. Authenticate using wallet signatures
+1. Authenticate using direct or SIWE wallet signatures
 2. Use JWT tokens for subsequent API requests
 3. Call all available SDK endpoints
 
@@ -10,11 +10,18 @@ Requirements:
     pip install eth-account requests
 """
 
+import os
 import requests
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from typing import Optional, Dict, Any, List
 import json
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 
 # ============================================================================
@@ -23,18 +30,18 @@ import json
 
 # Base URL of the Sail API server
 # Production API URL: https://app.sail.money/prod
-BASE_URL = "https://app.sail.money/prod"
+BASE_URL = os.getenv("SAIL_API_URL", "https://app.sail.money/prod")
 
 # Project and Page IDs
 # Default values for Sail production
-PROJECT_ID = "sail"
-PAGE_ID = "home"
+PROJECT_ID = os.getenv("SAIL_PROJECT_ID", "sail")
+PAGE_ID = os.getenv("SAIL_PAGE_ID", "home")
 
 # Wallet configuration
 # IMPORTANT: Never commit private keys to version control!
 # Get your private key from: https://sail.money/manage-wallet/7702
 # Use environment variables or secure key management in production
-PRIVATE_KEY = "0x" + "0" * 64  # Replace with your private key
+PRIVATE_KEY = os.getenv("SAIL_PRIVATE_KEY", "0x" + "0" * 64)  # Replace with your private key
 WALLET_ADDRESS = None  # Will be derived from private key
 
 
@@ -143,13 +150,21 @@ class SailAPIClient:
     # AUTHENTICATION
     # ========================================================================
     
-    def authenticate(self, wallet_address: str, signature: str) -> Dict[str, Any]:
+    def authenticate(
+        self,
+        wallet_address: str,
+        signature: Optional[str] = None,
+        auth_payload: Optional[str] = None,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Authenticate using wallet signature.
         
         Args:
             wallet_address: Wallet address
-            signature: Signature of the authentication message
+            signature: Signature of the authentication payload
+            auth_payload: Authentication payload returned from the first direct-auth step
+            domain: Optional SIWE domain override
             
         Returns:
             Authentication response with token
@@ -157,16 +172,132 @@ class SailAPIClient:
         url = f"{self.base_url}{self.base_path}/authenticate"
         payload = {
             "walletAddress": wallet_address,
-            "signature": signature
         }
+        if signature:
+            payload["signature"] = signature
+        if auth_payload:
+            payload["payload"] = auth_payload
+        if domain:
+            payload["domain"] = domain
         
         response = requests.post(url, json=payload)
         response.raise_for_status()
         result = response.json()
         
         # Store token for future requests
+        if result.get("token"):
+            self.token = result.get("token")
+
+        return result
+
+    def request_direct_auth_payload(
+        self,
+        wallet_address: str,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Request the unique direct-auth payload for a smart account wallet.
+
+        Args:
+            wallet_address: Smart account wallet address
+            domain: Optional SIWE domain override
+
+        Returns:
+            Direct-auth payload response containing `payload` and optional `instructionMessage`
+        """
+        return self.authenticate(wallet_address=wallet_address, domain=domain)
+
+    def complete_direct_auth(
+        self,
+        wallet_address: str,
+        signature: str,
+        auth_payload: str,
+        domain: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Complete direct authentication with the signed direct-auth payload.
+
+        Args:
+            wallet_address: Smart account wallet address
+            signature: Signature over the direct-auth payload
+            auth_payload: Payload returned by `request_direct_auth_payload`
+            domain: Optional SIWE domain override
+
+        Returns:
+            Authentication response with token
+        """
+        return self.authenticate(
+            wallet_address=wallet_address,
+            signature=signature,
+            auth_payload=auth_payload,
+            domain=domain,
+        )
+
+    def initiate_siwe_auth(
+        self,
+        address: str,
+        chain_id: int = 8453,
+        domain: Optional[str] = None,
+        identity_mode: str = "byWallet"
+    ) -> Dict[str, Any]:
+        """
+        Start custom SIWE authentication.
+
+        Args:
+            address: Admin signer wallet address
+            chain_id: Chain ID used to render the SIWE message
+            domain: Optional SIWE domain override
+            identity_mode: Identity mode (`byWallet` recommended, `byUser` legacy only)
+
+        Returns:
+            SIWE auth session containing `sessionId` and `message`
+        """
+        url = f"{self.base_url}{self.base_path}/auth/initiate"
+        payload: Dict[str, Any] = {
+            "method": "siwe",
+            "address": address,
+            "chainId": chain_id,
+            "identityMode": identity_mode,
+        }
+        if domain:
+            payload["domain"] = domain
+
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()
+
+    def complete_siwe_auth(
+        self,
+        session_id: str,
+        signature: str,
+        wallet_address: str,
+        identity_mode: str = "byWallet"
+    ) -> Dict[str, Any]:
+        """
+        Complete custom SIWE authentication.
+
+        Args:
+            session_id: Session ID returned by `initiate_siwe_auth`
+            signature: Signature over the SIWE message
+            wallet_address: Admin signer wallet address
+            identity_mode: Identity mode used during initiation
+
+        Returns:
+            Authentication response with token
+        """
+        url = f"{self.base_url}{self.base_path}/auth/complete"
+        payload = {
+            "method": "siwe",
+            "sessionId": session_id,
+            "signature": signature,
+            "walletAddress": wallet_address,
+            "identityMode": identity_mode,
+        }
+
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        result = response.json()
         self.token = result.get("token")
-        
         return result
     
     # ========================================================================
@@ -196,6 +327,45 @@ class SailAPIClient:
             params["chainId"] = chain_id
         
         return self._request("GET", "/balance", params=params)
+
+    # ========================================================================
+    # METRICS
+    # ========================================================================
+
+    def get_metrics(
+        self,
+        endpoint_id: str,
+        params: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Execute a configured metrics endpoint.
+
+        Args:
+            endpoint_id: Metrics endpoint ID
+            params: Optional query params passed through to the configured tool/graph
+
+        Returns:
+            Metrics response shaped like {"message": str, "result": object}
+        """
+        return self._request("GET", f"/metrics/{endpoint_id}", params=params or {})
+
+    def get_metrics_balance(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return self.get_metrics("balance", params=params)
+
+    def get_metrics_earnings(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return self.get_metrics("earnings", params=params)
+
+    def get_metrics_history(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return self.get_metrics("history", params=params)
+
+    def get_metrics_portfolio(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return self.get_metrics("portfolio", params=params)
+
+    def get_metrics_user_metrics(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return self.get_metrics("user-metrics", params=params)
+
+    def get_metrics_yield(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return self.get_metrics("yield", params=params)
     
     # ========================================================================
     # DEPOSIT
@@ -637,73 +807,6 @@ class SailAPIClient:
         return self._request("POST", "/automation/stop")
     
     # ========================================================================
-    # VAULT
-    # ========================================================================
-    
-    def get_share_price_history(
-        self,
-        vault_addresses: str,  # Comma-separated list
-        chain_id: int,
-        days: Optional[int] = 90,
-        start_timestamp: Optional[int] = None,
-        end_timestamp: Optional[int] = None
-    ) -> Dict[str, Any]:
-        """
-        Get share price history for vaults.
-        Wallet address is extracted from JWT token, not from parameters.
-        
-        Args:
-            vault_addresses: Comma-separated list of vault addresses
-            chain_id: Chain ID
-            days: Number of days (default: 90)
-            start_timestamp: Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
-            end_timestamp: Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
-            
-        Returns:
-            Share price history
-        """
-        params = {
-            "vaultAddresses": vault_addresses,
-            "chainId": chain_id,
-            "days": days
-        }
-        if start_timestamp:
-            params["startTimestamp"] = start_timestamp
-        if end_timestamp:
-            params["endTimestamp"] = end_timestamp
-        
-        return self._request("GET", "/share-price-history", params=params)
-    
-    def get_vault_info(
-        self,
-        wallet_address: Optional[str] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None
-    ) -> float:
-        """
-        Get vault information.
-        Vault address and chain ID are configured in the tool/graph, not passed as parameters.
-        Wallet address is extracted from JWT token, not from parameters.
-        
-        Args:
-            wallet_address: Optional wallet address (only passed to tool if provided)
-            start_time: Optional start datetime (ISO 8601 string) or Unix timestamp in seconds
-            end_time: Optional end datetime (ISO 8601 string) or Unix timestamp in seconds
-            
-        Returns:
-            Vault information as a simple number (e.g., 10.31)
-        """
-        params = {}
-        if wallet_address:
-            params["walletAddress"] = wallet_address
-        if start_time is not None:
-            params["startTime"] = start_time
-        if end_time is not None:
-            params["endTime"] = end_time
-        
-        return self._request("GET", "/vault-info", params=params)
-    
-    # ========================================================================
     # CHATBOT
     # ========================================================================
     
@@ -989,13 +1092,18 @@ def main():
     
     # Step 1: Authenticate
     print("\n=== Step 1: Authentication ===")
-    auth_message = "Authenticate SDK agent for Sail API"
-    signature = sign_message(auth_message, PRIVATE_KEY)
-    print(f"Signing message: {auth_message}")
+    direct_auth_payload = client.request_direct_auth_payload(wallet_address)
+    signature = sign_message(direct_auth_payload["payload"], PRIVATE_KEY)
+    print("Requested direct-auth payload from /authenticate")
+    print(f"Signing payload: {direct_auth_payload['payload'][:80]}...")
     print(f"Signature: {signature[:20]}...")
     
     try:
-        auth_response = client.authenticate(wallet_address, signature)
+        auth_response = client.complete_direct_auth(
+            wallet_address=wallet_address,
+            signature=signature,
+            auth_payload=direct_auth_payload["payload"],
+        )
         print(f"Authentication successful!")
         print(f"Token: {auth_response.get('token')[:20]}...")
         print(f"User ID: {auth_response.get('user_id')}")
@@ -1013,8 +1121,17 @@ def main():
     except Exception as e:
         print(f"Get balance failed: {e}")
     
-    # Step 3: Get Deposit Info
-    print("\n=== Step 3: Get Deposit Info ===")
+    # Step 3: Get Metrics Balance
+    print("\n=== Step 3: Get Metrics Balance ===")
+    try:
+        metrics_balance = client.get_metrics_balance()
+        print(f"Metrics Message: {metrics_balance.get('message')}")
+        print(f"Metrics Result: {metrics_balance.get('result')}")
+    except Exception as e:
+        print(f"Get metrics balance failed: {e}")
+
+    # Step 4: Get Deposit Info
+    print("\n=== Step 4: Get Deposit Info ===")
     try:
         deposit_info = client.get_deposit_info()
         print(f"Current Balance: {deposit_info.get('currentBalance')}")
@@ -1022,8 +1139,8 @@ def main():
     except Exception as e:
         print(f"Get deposit info failed: {e}")
     
-    # Step 4: Get Portfolio Total Balance
-    print("\n=== Step 4: Get Portfolio Total Balance ===")
+    # Step 5: Get Portfolio Total Balance
+    print("\n=== Step 5: Get Portfolio Total Balance ===")
     try:
         portfolio_balance = client.get_portfolio_total_balance()
         print(f"Total Balance: {portfolio_balance.get('balance')}")
@@ -1031,8 +1148,8 @@ def main():
     except Exception as e:
         print(f"Get portfolio balance failed: {e}")
     
-    # Step 5: Get Page Info
-    print("\n=== Step 5: Get Page Info ===")
+    # Step 6: Get Page Info
+    print("\n=== Step 6: Get Page Info ===")
     try:
         page_info = client.get_page()
         print(f"Page Title: {page_info.get('title')}")
@@ -1040,8 +1157,8 @@ def main():
     except Exception as e:
         print(f"Get page info failed: {e}")
     
-    # Step 6: Get Tier Info
-    print("\n=== Step 6: Get Tier Info ===")
+    # Step 7: Get Tier Info
+    print("\n=== Step 7: Get Tier Info ===")
     try:
         tier_info = client.get_tier_info()
         print(f"User Tier: {tier_info.get('userTier')}")
@@ -1049,8 +1166,8 @@ def main():
     except Exception as e:
         print(f"Get tier info failed: {e}")
     
-    # Step 7: Get Chatbots
-    print("\n=== Step 7: Get Chatbots ===")
+    # Step 8: Get Chatbots
+    print("\n=== Step 8: Get Chatbots ===")
     try:
         chatbots = client.get_chatbots()
         print(f"Found {len(chatbots.get('chatbots', []))} chatbot(s)")
@@ -1059,8 +1176,8 @@ def main():
     except Exception as e:
         print(f"Get chatbots failed: {e}")
     
-    # Step 8: Get Automation Status
-    print("\n=== Step 8: Get Automation Status ===")
+    # Step 9: Get Automation Status
+    print("\n=== Step 9: Get Automation Status ===")
     try:
         automation_status = client.get_automation_status()
         print(f"Has Job: {automation_status.get('hasJob')}")
@@ -1076,4 +1193,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
